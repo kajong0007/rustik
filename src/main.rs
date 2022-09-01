@@ -9,10 +9,9 @@ use kiss3d::light::Light;
  * Add one of our cube faces to the parent gray cube
  */
 fn add_sub_cube(parent : &mut SceneNode,
+            cube_size : f32,
             off_x : f32, off_y : f32, off_z : f32,
             col_r : f32, col_g : f32, col_b : f32) {
-
-    let cube_size = 0.29;
 
     let mut new_cube = parent.add_cube(cube_size, cube_size, cube_size);
     new_cube.set_color(col_r, col_g, col_b);
@@ -22,10 +21,10 @@ fn add_sub_cube(parent : &mut SceneNode,
 /*
  * Add a whole face of cubes by iterating over the vector of vectors
  */
-fn add_cube_face(c: &mut SceneNode, v: &Vec<Vec<f32>>, count: &mut usize, color_v: &Vec<Vec<f32>>) {
+fn add_cube_face(c: &mut SceneNode, v: &Vec<Vec<f32>>, count: &mut usize, color_v: &Vec<Vec<f32>>, cube_size : f32) {
     for i in v.iter() {
         let color = &color_v[*count];
-        add_sub_cube(c, i[0], i[1], i[2], color[0], color[1], color[2]);
+        add_sub_cube(c, cube_size, i[0], i[1], i[2], color[0], color[1], color[2]);
         *count += 1;
     }
 }
@@ -50,78 +49,116 @@ fn sign_flip_v(v: &mut Vec<Vec<f32>>, col0: usize) {
     }
 }
 
+fn front_clockwise(color_v : &mut Vec<Vec<f32>>) {
+    let coord0 = 2;
+    let coord1 = 5;
+    let coord2 = 8;
+
+    let tmp0 = color_v[coord0];
+    let tmp1 = color_v[coord1];
+    let tmp2 = color_v[coord2];
+
+    let side0 = 0;
+    let side1 = 9 * 2;
+
+    color_v[side0 + coord0] = color_v[side1 + coord0];
+    color_v[side0 + coord1] = color_v[side1 + coord1];
+    color_v[side0 + coord2] = color_v[side1 + coord2];
+
+    let side0 = 9 * 2;
+    let side1 = 9 * 1;
+
+    color_v[side0 + coord0] = color_v[side1 + coord0];
+    color_v[side0 + coord1] = color_v[side1 + coord1];
+    color_v[side0 + coord2] = color_v[side1 + coord2];
+
+    let side0 = 9 * 1;
+    let side1 = 9 * 3;
+
+    color_v[side0 + coord0] = color_v[side1 + coord0];
+    color_v[side0 + coord1] = color_v[side1 + coord1];
+    color_v[side0 + coord2] = color_v[side1 + coord2];
+
+    color_v[side1 + coord0] = tmp0;
+    color_v[side1 + coord1] = tmp1;
+    color_v[side1 + coord2] = tmp2;
+}
+
 fn main() {
     let mut window = Window::new("Kiss3d: cube");
 
+    let big_cube_size = 3.0;
+
     // Make a giant gray cube
-    let mut c      = window.add_cube(3.0, 3.0, 3.0);
+    let mut c      = window.add_cube(big_cube_size, big_cube_size, big_cube_size);
     c.set_color(0.3, 0.3, 0.3);
 
     // These distances are used to translate the cubes for the faces
-    let emerge_distance = 1.15;
-    let offset_distance = 1.0;
+    let emerge_distance = (big_cube_size / 3.0) * 1.15;
+    let offset_distance = big_cube_size / 3.0;
+    let cube_size = 0.1 * big_cube_size;
 
     // This is every color of every face on the cubes
     let color_v : Vec<Vec<f32>> = vec![
-        vec![0.0, 1.0, 0.0],
-        vec![0.0, 1.0, 0.0],
-        vec![0.0, 1.0, 0.0],
-        vec![0.0, 1.0, 0.0],
-        vec![0.0, 1.0, 0.0],
-        vec![0.0, 1.0, 0.0],
-        vec![0.0, 1.0, 0.0],
-        vec![0.0, 1.0, 0.0],
-        vec![0.0, 1.0, 0.0],
-
-        vec![0.0, 0.0, 1.0],
-        vec![0.0, 0.0, 1.0],
-        vec![0.0, 0.0, 1.0],
-        vec![0.0, 0.0, 1.0],
-        vec![0.0, 0.0, 1.0],
-        vec![0.0, 0.0, 1.0],
-        vec![0.0, 0.0, 1.0],
-        vec![0.0, 0.0, 1.0],
-        vec![0.0, 0.0, 1.0],
-
-        vec![1.0, 1.0, 0.0],
-        vec![1.0, 1.0, 0.0],
-        vec![1.0, 1.0, 0.0],
-        vec![1.0, 1.0, 0.0],
-        vec![1.0, 1.0, 0.0],
-        vec![1.0, 1.0, 0.0],
-        vec![1.0, 1.0, 0.0],
-        vec![1.0, 1.0, 0.0],
-        vec![1.0, 1.0, 0.0],
-
-        vec![0.9, 0.9, 0.9],
-        vec![0.9, 0.9, 0.9],
-        vec![0.9, 0.9, 0.9],
-        vec![0.9, 0.9, 0.9],
-        vec![0.9, 0.9, 0.9],
-        vec![0.9, 0.9, 0.9],
-        vec![0.9, 0.9, 0.9],
-        vec![0.9, 0.9, 0.9],
-        vec![0.9, 0.9, 0.9],
-
         vec![1.0, 0.5, 0.0],
-        vec![1.0, 0.5, 0.0],
-        vec![1.0, 0.5, 0.0],
-        vec![1.0, 0.5, 0.0],
-        vec![1.0, 0.5, 0.0],
-        vec![1.0, 0.5, 0.0],
-        vec![1.0, 0.5, 0.0],
-        vec![1.0, 0.5, 0.0],
-        vec![1.0, 0.5, 0.0],
+        vec![0.9, 0.5, 0.0],
+        vec![0.8, 0.5, 0.0],
+        vec![0.7, 0.5, 0.0],
+        vec![0.6, 0.5, 0.0],
+        vec![0.5, 0.5, 0.0],
+        vec![0.4, 0.5, 0.0],
+        vec![0.3, 0.5, 0.0],
+        vec![0.2, 0.5, 0.0],
 
         vec![1.0, 0.0, 0.0],
-        vec![1.0, 0.0, 0.0],
-        vec![1.0, 0.0, 0.0],
-        vec![1.0, 0.0, 0.0],
-        vec![1.0, 0.0, 0.0],
-        vec![1.0, 0.0, 0.0],
-        vec![1.0, 0.0, 0.0],
-        vec![1.0, 0.0, 0.0],
-        vec![1.0, 0.0, 0.0],
+        vec![0.9, 0.0, 0.0],
+        vec![0.8, 0.0, 0.0],
+        vec![0.7, 0.0, 0.0],
+        vec![0.6, 0.0, 0.0],
+        vec![0.5, 0.0, 0.0],
+        vec![0.4, 0.0, 0.0],
+        vec![0.3, 0.0, 0.0],
+        vec![0.2, 0.0, 0.0],
+
+        vec![1.0, 1.0, 0.0],
+        vec![0.9, 0.9, 0.0],
+        vec![0.8, 0.8, 0.0],
+        vec![0.7, 0.7, 0.0],
+        vec![0.6, 0.6, 0.0],
+        vec![0.5, 0.5, 0.0],
+        vec![0.4, 0.4, 0.0],
+        vec![0.3, 0.3, 0.0],
+        vec![0.2, 0.2, 0.0],
+
+        vec![0.9, 0.9, 0.9],
+        vec![0.8, 0.8, 0.8],
+        vec![0.7, 0.7, 0.7],
+        vec![0.6, 0.6, 0.6],
+        vec![0.5, 0.5, 0.5],
+        vec![0.4, 0.4, 0.4],
+        vec![0.3, 0.3, 0.3],
+        vec![0.2, 0.2, 0.2],
+        vec![0.1, 0.1, 0.1],
+
+        vec![0.0, 0.0, 1.0],
+        vec![0.0, 0.0, 0.9],
+        vec![0.0, 0.0, 0.8],
+        vec![0.0, 0.0, 0.7],
+        vec![0.0, 0.0, 0.6],
+        vec![0.0, 0.0, 0.5],
+        vec![0.0, 0.0, 0.4],
+        vec![0.0, 0.0, 0.3],
+        vec![0.0, 0.0, 0.2],
+
+        vec![0.0, 1.0, 0.0],
+        vec![0.0, 0.9, 0.0],
+        vec![0.0, 0.8, 0.0],
+        vec![0.0, 0.7, 0.0],
+        vec![0.0, 0.6, 0.0],
+        vec![0.0, 0.5, 0.0],
+        vec![0.0, 0.4, 0.0],
+        vec![0.0, 0.3, 0.0],
+        vec![0.0, 0.2, 0.0],
     ];
 
     // A single face on the cube, coordinate-wise
@@ -137,19 +174,21 @@ fn main() {
         vec![emerge_distance, -offset_distance, -offset_distance],
     ];
 
+    front_clockwise(&mut color_v);
+
     // Render all of the faces of the rubik's cube
     let mut count = 0;
-    add_cube_face(&mut c, &v, &mut count, &color_v);
+    add_cube_face(&mut c, &v, &mut count, &color_v, cube_size);
     sign_flip_v(&mut v, 0);
-    add_cube_face(&mut c, &v, &mut count, &color_v);
+    add_cube_face(&mut c, &v, &mut count, &color_v, cube_size);
     swap_v(&mut v, 0, 1);
-    add_cube_face(&mut c, &v, &mut count, &color_v);
+    add_cube_face(&mut c, &v, &mut count, &color_v, cube_size);
     sign_flip_v(&mut v, 1);
-    add_cube_face(&mut c, &v, &mut count, &color_v);
+    add_cube_face(&mut c, &v, &mut count, &color_v, cube_size);
     swap_v(&mut v, 1, 2);
-    add_cube_face(&mut c, &v, &mut count, &color_v);
+    add_cube_face(&mut c, &v, &mut count, &color_v, cube_size);
     sign_flip_v(&mut v, 2);
-    add_cube_face(&mut c, &v, &mut count, &color_v);
+    add_cube_face(&mut c, &v, &mut count, &color_v, cube_size);
 
     window.set_light(Light::StickToCamera);
 
