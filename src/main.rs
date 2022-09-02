@@ -186,37 +186,14 @@ fn main() {
 
     // Make a giant gray cube
     let mut c      = window.add_cube(big_cube_size, big_cube_size, big_cube_size);
-    c.set_color(0.3, 0.3, 0.3);
+    c.set_color(0.2, 0.2, 0.2);
 
     // These distances are used to translate the cubes for the faces
     let emerge_distance = (big_cube_size / 3.0) * 1.15;
     let offset_distance = big_cube_size / 3.0;
     let cube_size = 0.1 * big_cube_size;
 
-    // colors that decrease in intensity to help find out
-    // the indices on each face
-    let mut color_v : Vec<Vec<f32>> = vec![
-        vec![1.0, 0.5, 0.0], vec![0.9, 0.5, 0.0], vec![0.8, 0.5, 0.0], vec![0.7, 0.5, 0.0],
-        vec![0.6, 0.5, 0.0], vec![0.5, 0.5, 0.0], vec![0.4, 0.5, 0.0], vec![0.3, 0.5, 0.0], vec![0.2, 0.5, 0.0],
-
-        vec![1.0, 0.0, 0.0], vec![0.9, 0.0, 0.0], vec![0.8, 0.0, 0.0], vec![0.7, 0.0, 0.0],
-        vec![0.6, 0.0, 0.0], vec![0.5, 0.0, 0.0], vec![0.4, 0.0, 0.0], vec![0.3, 0.0, 0.0], vec![0.2, 0.0, 0.0],
-
-        vec![1.0, 1.0, 0.0], vec![0.9, 0.9, 0.0], vec![0.8, 0.8, 0.0], vec![0.7, 0.7, 0.0],
-        vec![0.6, 0.6, 0.0], vec![0.5, 0.5, 0.0], vec![0.4, 0.4, 0.0], vec![0.3, 0.3, 0.0], vec![0.2, 0.2, 0.0],
-
-        vec![0.9, 0.9, 0.9], vec![0.8, 0.8, 0.8], vec![0.7, 0.7, 0.7], vec![0.6, 0.6, 0.6],
-        vec![0.5, 0.5, 0.5], vec![0.4, 0.4, 0.4], vec![0.3, 0.3, 0.3], vec![0.2, 0.2, 0.2], vec![0.1, 0.1, 0.1],
-
-        vec![0.0, 0.0, 1.0], vec![0.0, 0.0, 0.9], vec![0.0, 0.0, 0.8], vec![0.0, 0.0, 0.7],
-        vec![0.0, 0.0, 0.6], vec![0.0, 0.0, 0.5], vec![0.0, 0.0, 0.4], vec![0.0, 0.0, 0.3], vec![0.0, 0.0, 0.2],
-
-        vec![0.0, 1.0, 0.0], vec![0.0, 0.9, 0.0], vec![0.0, 0.8, 0.0], vec![0.0, 0.7, 0.0],
-        vec![0.0, 0.6, 0.0], vec![0.0, 0.5, 0.0], vec![0.0, 0.4, 0.0], vec![0.0, 0.3, 0.0], vec![0.0, 0.2, 0.0],
-    ];
-
-    // Real Colors
-    /*
+    // Colors in the default order of the cube
     let mut color_v = vec![
         vec![1.0, 0.5, 0.0], vec![1.0, 0.5, 0.0], vec![1.0, 0.5, 0.0], vec![1.0, 0.5, 0.0],
         vec![1.0, 0.5, 0.0], vec![1.0, 0.5, 0.0], vec![1.0, 0.5, 0.0], vec![1.0, 0.5, 0.0], vec![1.0, 0.5, 0.0],
@@ -236,7 +213,6 @@ fn main() {
         vec![0.0, 1.0, 0.0], vec![0.0, 1.0, 0.0], vec![0.0, 1.0, 0.0], vec![0.0, 1.0, 0.0],
         vec![0.0, 1.0, 0.0], vec![0.0, 1.0, 0.0], vec![0.0, 1.0, 0.0], vec![0.0, 1.0, 0.0], vec![0.0, 1.0, 0.0],
     ];
-    // */
 
     // A single face on the cube, coordinate-wise
     let mut v : Vec<Vec<f32>> = vec![
@@ -251,7 +227,18 @@ fn main() {
         vec![emerge_distance, -offset_distance, -offset_distance],
     ];
 
+    up_clockwise(&mut color_v);
+    up_clockwise(&mut color_v);
+    front_clockwise(&mut color_v);
+    front_clockwise(&mut color_v);
     back_clockwise(&mut color_v);
+    back_clockwise(&mut color_v);
+    left_clockwise(&mut color_v);
+    up_counter_clockwise(&mut color_v);
+    right_clockwise(&mut color_v);
+    right_clockwise(&mut color_v);
+    up_counter_clockwise(&mut color_v);
+    right_clockwise(&mut color_v);
 
     // Render all of the faces of the rubik's cube
     let mut count = 0;
