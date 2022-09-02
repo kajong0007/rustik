@@ -55,85 +55,10 @@ fn clobber_one_vec(color_v: &mut Vec<Vec<f32>>, dst_idx: usize, src_idx: usize) 
     color_v[dst_idx][2] = color_v[src_idx][2];
 }
 
-fn clobber_one_vec_backwards(color_v: &mut Vec<Vec<f32>>, dst_idx: usize, src_idx: usize) {
-    color_v[dst_idx][0] = color_v[src_idx][2];
-    color_v[dst_idx][1] = color_v[src_idx][1];
-    color_v[dst_idx][2] = color_v[src_idx][0];
-}
-
 fn clobber_from_other_vec(color_v: &mut Vec<Vec<f32>>, dst_idx: usize, src_vec: &Vec<f32>) {
     color_v[dst_idx][0] = src_vec[0];
     color_v[dst_idx][1] = src_vec[1];
     color_v[dst_idx][2] = src_vec[2];
-}
-
-fn clobber_three_vecs(color_v: &mut Vec<Vec<f32>>,
-               side0: usize, side1: usize,
-               coord0: usize, coord1: usize, coord2: usize) {
-
-    clobber_one_vec(color_v, side0 + coord0, side1 + coord0);
-    clobber_one_vec(color_v, side0 + coord1, side1 + coord1);
-    clobber_one_vec(color_v, side0 + coord2, side1 + coord2);
-}
-
-fn clobber_three_vecs_backwards(color_v: &mut Vec<Vec<f32>>,
-               side0: usize, side1: usize,
-               coord0: usize, coord1: usize, coord2: usize) {
-    clobber_one_vec_backwards(color_v, side0 + coord0, side1 + coord0);
-    clobber_one_vec_backwards(color_v, side0 + coord1, side1 + coord1);
-    clobber_one_vec_backwards(color_v, side0 + coord2, side1 + coord2);
-}
-
-fn rotate_something_clockwise(color_v: &mut Vec<Vec<f32>>,
-                              coord0: usize, coord1: usize, coord2: usize,
-                              face: usize,
-                              side0: usize, side1: usize, side2: usize, side3: usize,
-                              corner0: usize, corner1: usize, corner2: usize, corner3: usize,
-                              cross0: usize, cross1: usize, cross2: usize, cross3: usize,
-                              ) {
-    let tmp0 = vec![
-        color_v[side0 + coord0][2],
-        color_v[side0 + coord0][1],
-        color_v[side0 + coord0][0],
-    ];
-    let tmp1 = vec![
-        color_v[side0 + coord1][0],
-        color_v[side0 + coord1][1],
-        color_v[side0 + coord1][2],
-    ];
-    let tmp2 = vec![
-        color_v[side0 + coord2][0],
-        color_v[side0 + coord2][1],
-        color_v[side0 + coord2][2],
-    ];
-    clobber_three_vecs(color_v, side0, side1, coord0, coord1, coord2);
-    clobber_three_vecs(color_v, side1, side2, coord0, coord1, coord2);
-    clobber_three_vecs(color_v, side2, side3, coord0, coord1, coord2);
-
-    clobber_from_other_vec(color_v, side3 + coord0, &tmp0);
-    clobber_from_other_vec(color_v, side3 + coord1, &tmp1);
-    clobber_from_other_vec(color_v, side3 + coord2, &tmp2);
-
-    let tmp0 = vec![
-        color_v[face + corner0][0],
-        color_v[face + corner0][1],
-        color_v[face + corner0][2],
-    ];
-    let tmp1 = vec![
-        color_v[face + corner1][0],
-        color_v[face + corner1][1],
-        color_v[face + corner1][2],
-    ];
-
-    clobber_one_vec(color_v, face + corner0, face + corner1);
-    clobber_one_vec(color_v, face + corner1, face + corner2);
-    clobber_one_vec(color_v, face + corner2, face + corner3);
-    clobber_from_other_vec(color_v, face + corner3, &tmp0);
-
-    clobber_one_vec(color_v, face + cross0, face + cross1);
-    clobber_one_vec(color_v, face + cross1, face + cross2);
-    clobber_one_vec(color_v, face + cross2, face + cross3);
-    clobber_from_other_vec(color_v, face + cross3, &tmp0);
 }
 
 const LEFT  : usize = 9 * 0;
@@ -143,6 +68,18 @@ const UP    : usize = 9 * 3;
 const BACK  : usize = 9 * 4;
 const FRONT : usize = 9 * 5;
 
+fn rotate_four(color_v: &mut Vec<Vec<f32>>, one: usize, two: usize, three: usize, four: usize) {
+    let tmp = vec![
+        color_v[one][0],
+        color_v[one][1],
+        color_v[one][2],
+    ];
+    clobber_one_vec(color_v, one, two);
+    clobber_one_vec(color_v, two, three);
+    clobber_one_vec(color_v, three, four);
+    clobber_from_other_vec(color_v, four, &tmp);
+}
+
 fn apply_3_times(color_v: &mut Vec<Vec<f32>>, func: fn(&mut Vec<Vec<f32>>)) {
     func(color_v);
     func(color_v);
@@ -150,30 +87,96 @@ fn apply_3_times(color_v: &mut Vec<Vec<f32>>, func: fn(&mut Vec<Vec<f32>>)) {
 }
 
 fn front_clockwise(color_v : &mut Vec<Vec<f32>>) {
-    // rotating the front is positions 2,5,8
-    // of the left, up, right, and down sides
-    rotate_something_clockwise(color_v, 2, 5, 8,
-                               FRONT,
-                               LEFT, DOWN, RIGHT, UP,
-                               0, 2, 8, 6,
-                               1, 5, 7, 3);
+    rotate_four(color_v, 20, 17, 35, 2);
+    rotate_four(color_v, 23, 14, 32, 5);
+    rotate_four(color_v, 26, 11, 29, 8);
+    rotate_four(color_v, 47, 53, 51, 45);
+    rotate_four(color_v, 46, 50, 52, 48);
+}
+
+fn left_clockwise(color_v: &mut Vec<Vec<f32>>) {
+    rotate_four(color_v, 0, 6, 8, 2);
+    rotate_four(color_v, 1, 3, 7, 5);
+    rotate_four(color_v, 38, 20, 45, 27);
+    rotate_four(color_v, 37, 19, 46, 28);
+    rotate_four(color_v, 36, 18, 47, 29);
+}
+
+fn right_clockwise(color_v: &mut Vec<Vec<f32>>) {
+    rotate_four(color_v, 11, 17, 15, 9);
+    rotate_four(color_v, 10, 14, 16, 12);
+    rotate_four(color_v, 51, 26, 44, 33);
+    rotate_four(color_v, 52, 25, 43, 34);
+    rotate_four(color_v, 53, 24, 42, 35);
+}
+
+fn up_clockwise(color_v: &mut Vec<Vec<f32>>) {
+    rotate_four(color_v, 35, 33, 27, 29);
+    rotate_four(color_v, 32, 34, 30, 28);
+    rotate_four(color_v, 36, 2, 51, 9);
+    rotate_four(color_v, 39, 1, 48, 10);
+    rotate_four(color_v, 42, 0, 45, 11);
+}
+
+fn down_clockwise(color_v: &mut Vec<Vec<f32>>) {
+    rotate_four(color_v, 18, 24, 26, 20);
+    rotate_four(color_v, 19, 21, 25, 23);
+    rotate_four(color_v, 44, 17, 47, 6);
+    rotate_four(color_v, 41, 16, 50, 7);
+    rotate_four(color_v, 38, 15, 53, 8);
+}
+
+fn back_clockwise(color_v: &mut Vec<Vec<f32>>) {
+    rotate_four(color_v, 44, 38, 36, 42);
+    rotate_four(color_v, 43, 41, 37, 39);
+    rotate_four(color_v, 24, 6, 27, 9);
+    rotate_four(color_v, 21, 3, 30, 12);
+    rotate_four(color_v, 18, 0, 33, 15);
 }
 
 fn front_counter_clockwise(color_v: &mut Vec<Vec<f32>>) {
     apply_3_times(color_v, front_clockwise);
 }
 
-fn left_clockwise(color_v: &mut Vec<Vec<f32>>) {
-    rotate_something_clockwise(color_v, 0, 1, 2,
-                               LEFT,
-                               BACK, DOWN, FRONT, UP,
-                               6, 8, 2, 0,
-                               3, 7, 5, 1);
-}
-
 fn left_counter_clockwise(color_v: &mut Vec<Vec<f32>>) {
     apply_3_times(color_v, left_clockwise);
 }
+
+fn right_counter_clockwise(color_v: &mut Vec<Vec<f32>>) {
+    apply_3_times(color_v, right_clockwise);
+}
+fn up_counter_clockwise(color_v: &mut Vec<Vec<f32>>) {
+    apply_3_times(color_v, up_clockwise);
+}
+fn down_counter_clockwise(color_v: &mut Vec<Vec<f32>>) {
+    apply_3_times(color_v, down_clockwise);
+}
+fn back_counter_clockwise(color_v: &mut Vec<Vec<f32>>) {
+    apply_3_times(color_v, back_clockwise);
+}
+
+/* Cube orientation
+ *
+ *                 ____________           
+ *              Up | 27 30 33 |           
+ *                 | 28 31 34 |           
+ *                 | 29 32 35 |      up     
+ *      ___________|__________|___________
+ * Left | 00 01 02 | 45 48 51 | 11 10  9 | Right
+ *      | 03 04 05 | 46 49 52 | 14 13 12 |
+ *      | 06 07 08 | 47 50 53 | 17 16 15 |
+ *      |          |  Front   |          | back
+ *      |__________|__________|__________|
+ *                 | 20 23 26 |           
+ *            Down | 19 22 25 |           
+ *                 | 18 21 24 |           
+ *                 |__________|           
+ *                 | 38 41 44 |           
+ *            Back | 37 40 43 |           
+ *                 | 36 39 42 |           
+ *                 ------------           
+ *
+ */
 
 
 fn main() {
@@ -247,6 +250,8 @@ fn main() {
         vec![emerge_distance, -offset_distance, 0.0],
         vec![emerge_distance, -offset_distance, -offset_distance],
     ];
+
+    back_clockwise(&mut color_v);
 
     // Render all of the faces of the rubik's cube
     let mut count = 0;
