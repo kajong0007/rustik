@@ -49,39 +49,103 @@ fn sign_flip_v(v: &mut Vec<Vec<f32>>, col0: usize) {
     }
 }
 
+fn clobber_one_vec(color_v: &mut Vec<Vec<f32>>, dst_idx: usize, src_idx: usize) {
+    color_v[dst_idx][0] = color_v[src_idx][0];
+    color_v[dst_idx][1] = color_v[src_idx][1];
+    color_v[dst_idx][2] = color_v[src_idx][2];
+}
+
+fn clobber_from_other_vec(color_v: &mut Vec<Vec<f32>>, dst_idx: usize, src_vec: &Vec<f32>) {
+    color_v[dst_idx][0] = src_vec[0];
+    color_v[dst_idx][1] = src_vec[1];
+    color_v[dst_idx][2] = src_vec[2];
+}
+
+fn clobber_three_vecs(color_v: &mut Vec<Vec<f32>>,
+               side0: usize, side1: usize,
+               coord0: usize, coord1: usize, coord2: usize) {
+
+    clobber_one_vec(color_v, side0 + coord0, side1 + coord0);
+    clobber_one_vec(color_v, side0 + coord1, side1 + coord1);
+    clobber_one_vec(color_v, side0 + coord2, side1 + coord2);
+}
+
+fn rotate_something_clockwise(color_v: &mut Vec<Vec<f32>>,
+                              coord0: usize, coord1: usize, coord2: usize,
+                              face: usize,
+                              side0: usize, side1: usize, side2: usize, side3: usize) {
+}
+
 fn front_clockwise(color_v : &mut Vec<Vec<f32>>) {
+    // rotating the front is positions 2,5,8
+    // of the left, up, right, and down sides
     let coord0 = 2;
     let coord1 = 5;
     let coord2 = 8;
-
-    let tmp0 = color_v[coord0];
-    let tmp1 = color_v[coord1];
-    let tmp2 = color_v[coord2];
+    
+    let tmp0 = vec![
+        color_v[coord0][0],
+        color_v[coord0][1],
+        color_v[coord0][2],
+    ];
+    let tmp1 = vec![
+        color_v[coord1][0],
+        color_v[coord1][1],
+        color_v[coord1][2],
+    ];
+    let tmp2 = vec![
+        color_v[coord2][0],
+        color_v[coord2][1],
+        color_v[coord2][2],
+    ];
 
     let side0 = 0;
     let side1 = 9 * 2;
 
-    color_v[side0 + coord0] = color_v[side1 + coord0];
-    color_v[side0 + coord1] = color_v[side1 + coord1];
-    color_v[side0 + coord2] = color_v[side1 + coord2];
+    clobber_three_vecs(color_v, side0, side1, coord0, coord1, coord2);
 
     let side0 = 9 * 2;
     let side1 = 9 * 1;
 
-    color_v[side0 + coord0] = color_v[side1 + coord0];
-    color_v[side0 + coord1] = color_v[side1 + coord1];
-    color_v[side0 + coord2] = color_v[side1 + coord2];
+    clobber_three_vecs(color_v, side0, side1, coord0, coord1, coord2);
 
     let side0 = 9 * 1;
     let side1 = 9 * 3;
 
-    color_v[side0 + coord0] = color_v[side1 + coord0];
-    color_v[side0 + coord1] = color_v[side1 + coord1];
-    color_v[side0 + coord2] = color_v[side1 + coord2];
+    clobber_three_vecs(color_v, side0, side1, coord0, coord1, coord2);
 
-    color_v[side1 + coord0] = tmp0;
-    color_v[side1 + coord1] = tmp1;
-    color_v[side1 + coord2] = tmp2;
+    clobber_from_other_vec(color_v, side1 + coord0, &tmp0);
+    clobber_from_other_vec(color_v, side1 + coord1, &tmp1);
+    clobber_from_other_vec(color_v, side1 + coord2, &tmp2);
+
+    let rotate_face = 9 * 5;
+    // now rotate the front face
+    let tmp0 = vec![
+        color_v[rotate_face + 0][0],
+        color_v[rotate_face + 0][1],
+        color_v[rotate_face + 0][2],
+    ];
+    let tmp1 = vec![
+        color_v[rotate_face + 1][0],
+        color_v[rotate_face + 1][1],
+        color_v[rotate_face + 1][2],
+    ];
+
+    clobber_one_vec(color_v, rotate_face + 0, rotate_face + 2);
+    clobber_one_vec(color_v, rotate_face + 2, rotate_face + 8);
+    clobber_one_vec(color_v, rotate_face + 8, rotate_face + 6);
+    clobber_from_other_vec(color_v, rotate_face + 6, &tmp0);
+
+    clobber_one_vec(color_v, rotate_face + 1, rotate_face + 5);
+    clobber_one_vec(color_v, rotate_face + 5, rotate_face + 7);
+    clobber_one_vec(color_v, rotate_face + 7, rotate_face + 3);
+    clobber_from_other_vec(color_v, rotate_face + 3, &tmp1);
+}
+
+fn front_counter_clockwise(color_v: &mut Vec<Vec<f32>>) {
+    front_clockwise(color_v);
+    front_clockwise(color_v);
+    front_clockwise(color_v);
 }
 
 fn main() {
@@ -99,7 +163,7 @@ fn main() {
     let cube_size = 0.1 * big_cube_size;
 
     // This is every color of every face on the cubes
-    let color_v : Vec<Vec<f32>> = vec![
+    let mut color_v : Vec<Vec<f32>> = vec![
         vec![1.0, 0.5, 0.0],
         vec![0.9, 0.5, 0.0],
         vec![0.8, 0.5, 0.0],
