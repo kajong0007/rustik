@@ -178,41 +178,13 @@ fn back_counter_clockwise(color_v: &mut Vec<Vec<f32>>) {
  *
  */
 
-
-fn main() {
-    let mut window = Window::new("Kiss3d: cube");
-
+fn generate_cube(c: &mut SceneNode, color_v: &Vec<Vec<f32>>) {
     let big_cube_size = 3.0;
-
-    // Make a giant gray cube
-    let mut c      = window.add_cube(big_cube_size, big_cube_size, big_cube_size);
-    c.set_color(0.2, 0.2, 0.2);
 
     // These distances are used to translate the cubes for the faces
     let emerge_distance = (big_cube_size / 3.0) * 1.15;
     let offset_distance = big_cube_size / 3.0;
     let cube_size = 0.1 * big_cube_size;
-
-    // Colors in the default order of the cube
-    let mut color_v = vec![
-        vec![1.0, 0.5, 0.0], vec![1.0, 0.5, 0.0], vec![1.0, 0.5, 0.0], vec![1.0, 0.5, 0.0],
-        vec![1.0, 0.5, 0.0], vec![1.0, 0.5, 0.0], vec![1.0, 0.5, 0.0], vec![1.0, 0.5, 0.0], vec![1.0, 0.5, 0.0],
-
-        vec![1.0, 0.0, 0.0], vec![1.0, 0.0, 0.0], vec![1.0, 0.0, 0.0], vec![1.0, 0.0, 0.0],
-        vec![1.0, 0.0, 0.0], vec![1.0, 0.0, 0.0], vec![1.0, 0.0, 0.0], vec![1.0, 0.0, 0.0], vec![1.0, 0.0, 0.0],
-
-        vec![1.0, 1.0, 0.0], vec![1.0, 1.0, 0.0], vec![1.0, 1.0, 0.0], vec![1.0, 1.0, 0.0],
-        vec![1.0, 1.0, 0.0], vec![1.0, 1.0, 0.0], vec![1.0, 1.0, 0.0], vec![1.0, 1.0, 0.0], vec![1.0, 1.0, 0.0],
-
-        vec![0.9, 0.9, 0.9], vec![0.9, 0.9, 0.9], vec![0.9, 0.9, 0.9], vec![0.9, 0.9, 0.9],
-        vec![0.9, 0.9, 0.9], vec![0.9, 0.9, 0.9], vec![0.9, 0.9, 0.9], vec![0.9, 0.9, 0.9], vec![0.9, 0.9, 0.9],
-
-        vec![0.0, 0.0, 1.0], vec![0.0, 0.0, 1.0], vec![0.0, 0.0, 1.0], vec![0.0, 0.0, 1.0],
-        vec![0.0, 0.0, 1.0], vec![0.0, 0.0, 1.0], vec![0.0, 0.0, 1.0], vec![0.0, 0.0, 1.0], vec![0.0, 0.0, 1.0],
-
-        vec![0.0, 1.0, 0.0], vec![0.0, 1.0, 0.0], vec![0.0, 1.0, 0.0], vec![0.0, 1.0, 0.0],
-        vec![0.0, 1.0, 0.0], vec![0.0, 1.0, 0.0], vec![0.0, 1.0, 0.0], vec![0.0, 1.0, 0.0], vec![0.0, 1.0, 0.0],
-    ];
 
     // A single face on the cube, coordinate-wise
     let mut v : Vec<Vec<f32>> = vec![
@@ -227,32 +199,106 @@ fn main() {
         vec![emerge_distance, -offset_distance, -offset_distance],
     ];
 
-    up_clockwise(&mut color_v);
-    up_clockwise(&mut color_v);
-    front_clockwise(&mut color_v);
-    front_clockwise(&mut color_v);
-    back_clockwise(&mut color_v);
-    back_clockwise(&mut color_v);
-    left_clockwise(&mut color_v);
-    up_counter_clockwise(&mut color_v);
-    right_clockwise(&mut color_v);
-    right_clockwise(&mut color_v);
-    up_counter_clockwise(&mut color_v);
-    right_clockwise(&mut color_v);
-
     // Render all of the faces of the rubik's cube
     let mut count = 0;
-    add_cube_face(&mut c, &v, &mut count, &color_v, cube_size);
+    add_cube_face(c, &v, &mut count, &color_v, cube_size);
     sign_flip_v(&mut v, 0);
-    add_cube_face(&mut c, &v, &mut count, &color_v, cube_size);
+    add_cube_face(c, &v, &mut count, &color_v, cube_size);
     swap_v(&mut v, 0, 1);
-    add_cube_face(&mut c, &v, &mut count, &color_v, cube_size);
+    add_cube_face(c, &v, &mut count, &color_v, cube_size);
     sign_flip_v(&mut v, 1);
-    add_cube_face(&mut c, &v, &mut count, &color_v, cube_size);
+    add_cube_face(c, &v, &mut count, &color_v, cube_size);
     swap_v(&mut v, 1, 2);
-    add_cube_face(&mut c, &v, &mut count, &color_v, cube_size);
+    add_cube_face(c, &v, &mut count, &color_v, cube_size);
     sign_flip_v(&mut v, 2);
-    add_cube_face(&mut c, &v, &mut count, &color_v, cube_size);
+    add_cube_face(c, &v, &mut count, &color_v, cube_size);
+
+}
+
+enum Moves {
+    UP, UNUP,
+    DOWN, UNDOWN,
+    LEFT, UNLEFT,
+    RIGHT, UNRIGHT,
+    FRONT, UNFRONT,
+    BACK, UNBACK,
+}
+
+fn apply_move(color_v: &mut Vec<Vec<f32>>, mv: Moves) {
+    match mv {
+        Moves::UP => up_clockwise(color_v),
+        Moves::DOWN => down_clockwise(color_v),
+        Moves::LEFT => left_clockwise(color_v),
+        Moves::RIGHT => right_clockwise(color_v),
+        Moves::FRONT => front_clockwise(color_v),
+        Moves::BACK => back_clockwise(color_v),
+        Moves::UNUP => up_counter_clockwise(color_v),
+        Moves::UNDOWN => down_counter_clockwise(color_v),
+        Moves::UNLEFT => left_counter_clockwise(color_v),
+        Moves::UNRIGHT => right_counter_clockwise(color_v),
+        Moves::UNFRONT => front_counter_clockwise(color_v),
+        Moves::UNBACK => back_counter_clockwise(color_v),
+    }
+}
+
+fn apply_scramble(color_v: &mut Vec<Vec<f32>>, scramble: Vec<Moves>) {
+    for mv in scramble {
+        apply_move(color_v, mv);
+    }
+}
+
+enum Color {
+    WHITE, GREEN, YELLOW, BLUE, RED, ORANGE,
+}
+
+fn add_colors(c: Color, color_v: &mut Vec<Vec<f32>>, num: usize) {
+    for i in 0..num {
+        match c {
+            Color::WHITE => color_v.push(vec![0.9, 0.9, 0.9]),
+            Color::GREEN => color_v.push(vec![0.0, 1.0, 0.0]),
+            Color::YELLOW => color_v.push(vec![1.0, 1.0, 0.0]),
+            Color::BLUE => color_v.push(vec![0.0, 0.0, 1.0]),
+            Color::RED => color_v.push(vec![1.0, 0.0, 0.0]),
+            Color::ORANGE => color_v.push(vec![1.0, 0.5, 0.0]),
+        }
+    }
+}
+
+fn default_color_vec() -> Vec<Vec<f32>> {
+    let mut color_v = Vec::new();
+
+    add_colors(Color::ORANGE, &mut color_v, 9);
+    add_colors(Color::RED, &mut color_v, 9);
+    add_colors(Color::YELLOW, &mut color_v, 9);
+    add_colors(Color::WHITE, &mut color_v, 9);
+    add_colors(Color::BLUE, &mut color_v, 9);
+    add_colors(Color::GREEN, &mut color_v, 9);
+
+    return color_v;
+}
+
+fn main() {
+    let mut window = Window::new("Kiss3d: cube");
+
+    let big_cube_size = 3.0;
+
+    // Make a giant gray cube
+    let mut c      = window.add_cube(big_cube_size, big_cube_size, big_cube_size);
+    c.set_color(0.2, 0.2, 0.2);
+
+    let mut color_v = default_color_vec();
+
+    let scramble = vec![
+        Moves::FRONT,
+        Moves::BACK,
+        Moves::UP,
+        Moves::DOWN,
+        Moves::LEFT,
+        Moves::RIGHT,
+    ];
+
+    apply_scramble(&mut color_v, scramble);
+    generate_cube(&mut c, &color_v);
 
     window.set_light(Light::StickToCamera);
 
